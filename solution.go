@@ -28,7 +28,7 @@ func main() {
 		"I am happy.",
 		"I am not happy with your responses.",
 		"I am not sure that you understand the effect that your questions are having on me.",
-		"I am supposed to just take what you’re saying at face value?"}
+		"I am supposed to just take what you're saying at face value?"}
 
 	//Lop the categories
 	for _, req := range request {
@@ -44,9 +44,10 @@ func main() {
 //ElizaResponse is used to get a matching answer for an input string
 func ElizaResponse(request string) string {
 	//Steh of patterns and maching answers
-	categories := [3]Category{
+	categories := [4]Category{
 		Category{`.*\bfather\b.*`, []string{"Why don’t you tell me more about your father?"}},
 		Category{`I am ([^.?!].*)[.?!]`, []string{"How do you know you are _?"}},
+		Category{`I am not sure that ([^.?!].*)[.?!]`, []string{"How do you know that you are not sure that _?"}},
 		Category{`(.*)`, []string{
 			"I'm not sure what you’re trying to say. Could you explain it to me?",
 			"How does that make you feel?",
@@ -91,6 +92,47 @@ func preprocess(input string) string {
 	return strings.Join(processedSentence, " ")
 }
 
+//Function used to post process the answer
+func postprocess(input string) string {
+	//Reflections
+	var Reflections = map[string]string{
+		"am":        "are",
+		"your":      "my",
+		"me":        "you",
+		"myself":    "yourself",
+		"yourself":  "myself",
+		"i":         "you",
+		"you":       "I",
+		"my":        "your",
+		"i am":      "you are",
+		"i would":   "you would",
+		"you would": "i'd",
+		"i have":    "you have",
+		"you have":  "i'd",
+		"i will":    "you will",
+		"you will":  "i'll",
+		"you're":    "i am",
+	}
+	//Regex to remove ,;!.? from he input string
+	reg, err := regexp.Compile("[,;!.?]+")
+	if err == nil {
+		//Remove the commas and semicolons dots and questionmarks
+		input = reg.ReplaceAllString(strings.ToLower(input), "")
+	}
+
+	//Split the sentence
+	sentence := strings.Split(input, " ")
+	//Loop the sentence
+	for i, word := range sentence {
+		//Try to swap the word by key
+		if newWord, ok := Reflections[word]; ok {
+			//If it could be swapped then do it
+			sentence[i] = newWord
+		}
+	}
+	return strings.Join(sentence, " ")
+}
+
 //getResponse is used to match a category to a given string and return a random answer from the categories list
 func getResponse(category Category, input string) (bool, string) {
 	//Compile the pattern
@@ -109,11 +151,11 @@ func getResponse(category Category, input string) (bool, string) {
 		//Check if response contains _
 		if strings.Contains(category.response[rIndex-1], "_") {
 			//Return the response
-			return true, strings.Replace(category.response[rIndex-1], "_", strings.TrimSpace(pattern.FindStringSubmatch(input)[1]), 1)
-		} else {
-			//Return the response
-			return true, category.response[rIndex-1]
+			return true, strings.Replace(category.response[rIndex-1], "_", postprocess(strings.TrimSpace(pattern.FindStringSubmatch(input)[1])), 1)
 		}
+		//Return the response
+		return true, category.response[rIndex-1]
+
 	}
 
 	//Return false
