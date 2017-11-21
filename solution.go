@@ -23,7 +23,7 @@ func main() {
 		"People say I look like both my mother and father.",
 		"Father was a teacher.",
 		"I was my father’s favourite.",
-		"I’m looking forward to the weekend.",
+		"I'm looking forward to the weekend.",
 		"My grandfather was French!",
 		"I am happy.",
 		"I am not happy with your responses.",
@@ -48,10 +48,13 @@ func ElizaResponse(request string) string {
 		Category{`.*\bfather\b.*`, []string{"Why don’t you tell me more about your father?"}},
 		Category{`I am ([^.?!].*)[.?!]`, []string{"How do you know you are _?"}},
 		Category{`(.*)`, []string{
-			"I’m not sure what you’re trying to say. Could you explain it to me?",
+			"I'm not sure what you’re trying to say. Could you explain it to me?",
 			"How does that make you feel?",
 			"Why do you say that?"}},
 	}
+
+	//Preprocess the request
+	request = preprocess(request)
 
 	//Lop the categories
 	for _, cat := range categories {
@@ -63,6 +66,29 @@ func ElizaResponse(request string) string {
 	}
 	//Return an empty string
 	return ""
+}
+
+//function used to unify the "i'm" variations
+func preprocess(input string) string {
+	//Used to preprocess the sentences for better regex match
+	var PreProcessWords = map[string]string{
+		"i'm":  "i am",
+		"Im":   "i am",
+		"I AM": "i am",
+		"I'm":  "i am",
+	}
+	//The processed Sentence
+	processedSentence := strings.Split(input, " ")
+	//Loop the input text
+	for i, word := range processedSentence {
+		//Try to process the word
+		if processed, ok := PreProcessWords[word]; ok {
+			//If it could be rpocessed then set it
+			processedSentence[i] = processed
+		}
+	}
+	//Return the pre processed sentence
+	return strings.Join(processedSentence, " ")
 }
 
 //getResponse is used to match a category to a given string and return a random answer from the categories list
