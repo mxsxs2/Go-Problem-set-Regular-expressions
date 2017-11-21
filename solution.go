@@ -19,7 +19,7 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	//Set of requests
-	request := [9]string{
+	request := [12]string{
 		"People say I look like both my mother and father.",
 		"Father was a teacher.",
 		"I was my father’s favourite.",
@@ -28,7 +28,11 @@ func main() {
 		"I am happy.",
 		"I am not happy with your responses.",
 		"I am not sure that you understand the effect that your questions are having on me.",
-		"I am supposed to just take what you're saying at face value?"}
+		"I am supposed to just take what you're saying at face value?",
+		"I dont like theory questions on exams.",
+		"I feel this problem set solution is good.",
+		"I like programming because it is easy.",
+	}
 
 	//Lop the categories
 	for _, req := range request {
@@ -44,10 +48,28 @@ func main() {
 //ElizaResponse is used to get a matching answer for an input string
 func ElizaResponse(request string) string {
 	//Steh of patterns and maching answers
-	categories := [4]Category{
+	categories := [7]Category{
 		Category{`.*\bfather\b.*`, []string{"Why don’t you tell me more about your father?"}},
 		Category{`I am ([^.?!].*)[.?!]`, []string{"How do you know you are _?"}},
 		Category{`I am not sure that ([^.?!].*)[.?!]`, []string{"How do you know that you are not sure that _?"}},
+		Category{`I dont (.*)`, []string{
+			"Don't you really _?",
+			"Why don't you _?",
+			"Do you wish to be able to _?",
+			"Does that trouble you?",
+		}},
+		Category{`I feel (.*)`, []string{
+			"Tell me more about such feelings..",
+			"Do you often feel that _?",
+			"Do you enjoy feeling that _?",
+			"Of what does feeling that _ remind you?",
+		}},
+		Category{`.* because .*`, []string{
+			"Is that the real reason?",
+			"Don't any other reasons come to mind?",
+			"Does that reason seem to explain anything else?",
+			"What other reasons might there be?",
+		}},
 		Category{`(.*)`, []string{
 			"I'm not sure what you’re trying to say. Could you explain it to me?",
 			"How does that make you feel?",
